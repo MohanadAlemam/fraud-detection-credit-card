@@ -2,7 +2,6 @@
 import numpy as np
 import pandas as pd
 
-
 # 01. Data Loader Function
 def import_data(file_path : str, file_type: str= "csv"):
     """
@@ -25,3 +24,10 @@ def import_data(file_path : str, file_type: str= "csv"):
 
     except Exception as e:
         raise ValueError(f"Failed to import data: {e}")
+
+#02. Class Imbalance Function
+
+def class_imbalance(labeled_data : pd.DataFrame):
+    labeled_data = labeled_data.drop_duplicates()
+
+    imbalance_scores = labeled_data["target value"].value_counts()/len(labeled_data) * 100
