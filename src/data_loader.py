@@ -45,3 +45,16 @@ def class_balance(labeled_data : pd.DataFrame):
     return df
 
 #3. Assess Duplication
+def check_duplicate(data_frame):
+   
+    duplicated_rows = data_frame.duplicated()
+    # record duplicated rows
+
+    count = len(data_frame[duplicated_rows])
+    print(f"There are {count} duplicate rows.\n\n")
+
+    for index, is_duplicated in enumerate(duplicated_rows):
+        if is_duplicated:
+            print(f"Duplicate row detected, at index: {index}")
+    else:
+        print("\nNo further duplicates")
