@@ -10,7 +10,7 @@ __pycache__/
 # ========================
 # Virtual environments
 # ========================
-venv/
+.venv/
 .env/
 
 # ========================
@@ -43,3 +43,14 @@ results/
 .mypy_cache/
 .pytest_cache/
 .coverage
+
+# =======================
+# Model artifacts
+# =======================
+*.h5
+*.keras
+
+# =======================
+# Jupyter checkpoints
+# ======================
+.ipynb_checkpoints/
