@@ -25,9 +25,14 @@ def import_data(file_path : str, file_type: str= "csv"):
     except Exception as e:
         raise ValueError(f"Failed to import data: {e}")
 
-#02. Class Imbalance Function
 
-def class_imbalance(labeled_data : pd.DataFrame):
+#02. Class Balance Function
+def class_balance(labeled_data : pd.DataFrame):
     labeled_data = labeled_data.drop_duplicates()
 
-    imbalance_scores = labeled_data["target value"].value_counts()/len(labeled_data) * 100
+    imbalance_scores = labeled_data["Class"].value_counts()/len(labeled_data) * 100
+    # Count each class instances and divide by the total number of instances
+    imbalance_scores = imbalance_scores.round(2)
+    imbalance_scores = imbalance_scores.rename('Percentage of the Class')
+
+    return imbalance_scores
