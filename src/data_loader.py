@@ -2,6 +2,7 @@
 import numpy as np
 import pandas as pd
 
+
 # 01. Data Loader Function
 def import_data(file_path : str, file_type: str= "csv"):
     """
@@ -16,8 +17,10 @@ def import_data(file_path : str, file_type: str= "csv"):
             raw_data = pd.read_csv(file_path)
         else:
             raise TypeError("File type must be 'csv'")
+            # Handles file type errors
         if raw_data.empty:
             raise ValueError("The CSV file is empty.")
+            # Handles empty files
         return raw_data
 
     except Exception as e:
