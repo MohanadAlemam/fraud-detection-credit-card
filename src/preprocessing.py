@@ -70,19 +70,34 @@ def histograms_vis(data_frame : pd.DataFrame):
     """
     data_frame = data_frame.drop(columns="Class")
     # remove class from the visualisation
-    data_frame.hist(figsize = (20, 16), bins = 10, layout=(6, 5))
+    data_frame.hist(figsize = (20, 16), bins = 35, layout=(6, 5))
     # 6 rows, 5 columns
     plt.tight_layout()
     plt.show()
 
 def box_plots(data_frame : pd.DataFrame):
+    """
+    Plots box plots of each column/ feature class-wise.
 
-    features = data_frame.columns
+    :param data_frame: data frame containing the features.
+    :return: box plots of each column/ feature class-wise.
+    """
+    features = data_frame.drop(columns= "Class").columns
     n_features = len(features)
-    n_columns = 5
-    n_rows = 6
+    n_columns = 4
+    n_rows = 8
 
-    fig, axes = plt.subplots(n_rows, n_columns, figsize=(20, 15))
+    fig, axes = plt.subplots(n_rows, n_columns, figsize=(15, 22))
     axes = axes.flatten()
 
     for i, col in enumerate(features):
+        data_frame.boxplot(column=col, by="Class", ax=axes[i])
+        axes[i].set_title(f"[{col}]")
+        axes[i].set_xlabel("Y")
+        axes[i].set_ylabel(col)
+
+    for j in range(i + 1, len(axes)):
+       fig.delaxes(axes[j])
+       # removes all extras
+    plt.suptitle("")
+    plt.show()
