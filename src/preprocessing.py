@@ -8,7 +8,7 @@ def class_balance(labeled_data : pd.DataFrame):
     """
     Calculate the data class imbalance across the two classes.
 
-    :param labeled_data: Pandas DataFrame containing the data
+    :param labeled_data: Pandas DataFrame containing the feature and labels.
     :return: data frame containing % of each class in the data and count.
     """
     value_count = labeled_data["Class"].value_counts()
@@ -18,7 +18,6 @@ def class_balance(labeled_data : pd.DataFrame):
 
     imbalance_scores = imbalance_scores.rename('Percentage of the Class')
     df = pd.concat([value_count, imbalance_scores], axis=1)
-
     return df
 
 # 3. Assess Duplication
@@ -39,7 +38,7 @@ def check_duplicates(data_frame: pd.DataFrame):
         if "Class" in duplicates_df.columns:
             class_counts = duplicates_df["Class"].value_counts()
             print(f"\nThere are total of {count} duplicated rows.")
-            print(f"\nDuplicated rows by class:")
+            print(f"\nDuplicated rows by class are listed in the table:")
             return class_counts
     else:
         print("\nNo further duplicates")
@@ -48,6 +47,7 @@ def check_duplicates(data_frame: pd.DataFrame):
 def missingness(data_frame : pd.DataFrame):
     """
     Calculates the percentage of missing values in each column.
+
     :param data_frame: data frame containing the data
     :return: percentage of missing values in each column, or a message confirming no missing values.
     """
@@ -65,6 +65,7 @@ def missingness(data_frame : pd.DataFrame):
 def histograms_vis(data_frame : pd.DataFrame):
     """
     Visualizes histograms of each column/ feature.
+
     :param data_frame: data frame containing the features
     :return: visualizes histograms of each column/ feature.
     """
