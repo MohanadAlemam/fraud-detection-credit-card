@@ -64,7 +64,14 @@ def missingness(data_frame : pd.DataFrame):
 
 #5. Visualisation
 def histograms_vis(data_frame : pd.DataFrame):
+    """
+    Visualizes histograms of each column/ feature.
+    :param data_frame: data frame containing the features
+    :return: visualizes histograms of each column/ feature.
+    """
     data_frame = data_frame.drop(columns="Class")
     # remove class from the visualisation
-    data_frame.hist(figsize = (40, 20), bins = 10, layout=(6, 5))
+    data_frame.hist(figsize = (20, 16), bins = 10, layout=(6, 5))
+    # 6 rows, 5 columns
+    plt.tight_layout()
     plt.show()
