@@ -1,3 +1,7 @@
+# Initial required libraries
+import numpy as np
+import pandas as pd
+
 #01. Class Balance Function
 def class_balance(labeled_data : pd.DataFrame):
     """
@@ -18,15 +22,24 @@ def class_balance(labeled_data : pd.DataFrame):
 
 
 # 3. Assess Duplication
-def check_duplicate(data_frame):
+def check_duplicates(data_frame):
+    """
+    Checks if the data frame contains duplicate rows.
+
+    :param data_frame: Pandas DataFrame containing the data
+    :return: a table with count of duplicate rows class wise, and the total number of duplicate rows.
+    """
     duplicated_rows = data_frame.duplicated()
     # record duplicated rows
 
-    count = len(data_frame[duplicated_rows])
-    print(f"There are {count} duplicate rows.\n\n")
+    duplicates_df = data_frame[duplicated_rows]
+    count = len(duplicates_df)
+    print(f"\nThere are {count} duplicated rows.\n")
 
-    for index, is_duplicated in enumerate(duplicated_rows):
-        if is_duplicated:
-            print(f"Duplicate row detected, at index: {index}")
+    if count > 0:
+        if "Class" in duplicates_df.columns:
+            class_counts = duplicates_df["Class"].value_counts()
+            print(f"Duplicated rows by class:\n")
+            return class_counts
     else:
         print("\nNo further duplicates")
