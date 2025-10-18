@@ -22,7 +22,7 @@ def class_balance(labeled_data : pd.DataFrame):
 
 
 # 3. Assess Duplication
-def check_duplicates(data_frame):
+def check_duplicates(data_frame: pd.DataFrame):
     """
     Checks if the data frame contains duplicate rows.
 
@@ -34,12 +34,29 @@ def check_duplicates(data_frame):
 
     duplicates_df = data_frame[duplicated_rows]
     count = len(duplicates_df)
-    print(f"\nThere are {count} duplicated rows.\n")
 
     if count > 0:
         if "Class" in duplicates_df.columns:
             class_counts = duplicates_df["Class"].value_counts()
-            print(f"Duplicated rows by class:\n")
+            print(f"\nThere are total of {count} duplicated rows.")
+            print(f"\nDuplicated rows by class:")
             return class_counts
     else:
         print("\nNo further duplicates")
+
+#4 Missing-ness
+def missingness(data_frame : pd.DataFrame):
+    """
+    Calculates the percentage of missing values in each column.
+    :param data_frame: data frame containing the data
+    :return: percentage of missing values in each column, or a message confirming no missing values.
+    """
+    for column in data_frame:
+        existing = sum(data_frame[column].value_counts())/len(data_frame)
+        # count the existing values
+        if existing < 1.00:
+            existing = existing*100
+            print(f"% of missing values in column ({column}) is: {100 - existing:.1f}")
+            #Display the missing values %
+    else:
+        print("No missing values")
