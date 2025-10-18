@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 
 # 01. Data Loader Function
-def import_data(file_path : str, file_type: str= "csv"):
+def load_data(file_path : str, file_type: str= "csv"):
     """
     Imports a CSV file into a pandas DataFrame.
 
