@@ -1,5 +1,6 @@
 # Initial required libraries
 import numpy as np
+import matplotlib.pyplot as plt
 import pandas as pd
 
 #01. Class Balance Function
@@ -44,7 +45,7 @@ def check_duplicates(data_frame: pd.DataFrame):
     else:
         print("\nNo further duplicates")
 
-#4 Missing-ness
+#4. Missing-ness
 def missingness(data_frame : pd.DataFrame):
     """
     Calculates the percentage of missing values in each column.
@@ -60,3 +61,10 @@ def missingness(data_frame : pd.DataFrame):
             #Display the missing values %
     else:
         print("No missing values")
+
+#5. Visualisation
+def histograms_vis(data_frame : pd.DataFrame):
+    data_frame = data_frame.drop(columns="Class")
+    # remove class from the visualisation
+    data_frame.hist(figsize = (40, 20), bins = 10, layout=(6, 5))
+    plt.show()
