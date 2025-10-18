@@ -21,7 +21,6 @@ def class_balance(labeled_data : pd.DataFrame):
 
     return df
 
-
 # 3. Assess Duplication
 def check_duplicates(data_frame: pd.DataFrame):
     """
@@ -75,3 +74,15 @@ def histograms_vis(data_frame : pd.DataFrame):
     # 6 rows, 5 columns
     plt.tight_layout()
     plt.show()
+
+def box_plots(data_frame : pd.DataFrame):
+
+    features = data_frame.columns
+    n_features = len(features)
+    n_columns = 5
+    n_rows = 6
+
+    fig, axes = plt.subplots(n_rows, n_columns, figsize=(20, 15))
+    axes = axes.flatten()
+
+    for i, col in enumerate(features):
