@@ -1,7 +1,8 @@
 # Initial required libraries
-import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+from keras.src.utils.summary_utils import bold_text
+
 
 #01. Class Balance Function
 def class_balance(labeled_data : pd.DataFrame):
@@ -37,8 +38,11 @@ def check_duplicates(data_frame: pd.DataFrame):
     if count > 0:
         if "Class" in duplicates_df.columns:
             class_counts = duplicates_df["Class"].value_counts()
-            print(f"\nThere are total of {count} duplicated rows.")
-            print(f"\nDuplicated rows by class are listed in the table:")
+            #print(f"\nThere are total of {count} duplicated rows.")
+            #print(f"\nDuplicated rows by class are listed in the table:")
+            class_counts.plot(kind='bar', figsize=(3, 2), color="orange", legend=True)
+            plt.title('Count of Duplicated Instances Class-wise', fontsize=8)
+            plt.show()
             return class_counts
     else:
         print("\nNo further duplicates")
@@ -84,21 +88,21 @@ def box_plots(data_frame : pd.DataFrame):
     :return: box plots of each column/ feature class-wise.
     """
     features = data_frame.drop(columns= "Class").columns
-    n_features = len(features)
     n_columns = 4
     n_rows = 8
 
-    fig, axes = plt.subplots(n_rows, n_columns, figsize=(15, 22))
+    fig, axes = plt.subplots(n_rows, n_columns, figsize=(15, 22), sharex=False, sharey=False, squeeze=False)
+    fig.suptitle("Class-wise Box Plot of Features", fontsize=16, y=1.05)
     axes = axes.flatten()
 
     for i, col in enumerate(features):
         data_frame.boxplot(column=col, by="Class", ax=axes[i])
-        axes[i].set_title(f"[{col}]")
-        axes[i].set_xlabel("Y")
-        axes[i].set_ylabel(col)
+        axes[i].set_title(f"{col}", fontsize=9)
+        axes[i].set_xlabel("Class")
+        axes[i].set_ylabel("Value")
 
     for j in range(i + 1, len(axes)):
        fig.delaxes(axes[j])
-       # removes all extras
-    plt.suptitle("")
+       # removes all extras plots
+    plt.tight_layout(rect=[0, 0, 1, 0.97])
     plt.show()
