@@ -20,19 +20,40 @@ class FeatureEngineer(BaseEstimator, TransformerMixin):
         self.scaler = MinMaxScaler()
 
     def fit(self, X, y=None):
+
         # learn the mini and max of the concentrated features
-        self.scaler.fit(self.concentrated_predictors)
+        self.scaler.fit(X[self.concentrated_predictors])
         return self
     def transform(self, X, y=None):
         X = X.copy()
+
         # squaring strong predictors
         for column in self.strong_predictors:
             if column in X.columns:
-                X[f"{col}_squared"] = X[col] ** 2
+                X[f"{column}_squared"] = X[column] ** 2
+
         # scale the concentrated columns
         for column in self.concentrated_predictors:
             if column in X.columns:
-                X[f"{column}_scaled"] = self.scaler.transform(X[column])
+                X[f"{column}_scaled"] = self.scaler.fit_transform(X[[column]])
+                # MinMaxScaler.transform() expects a 2D array not a Series hence [[]]
+
+        # extract hour and time from feature 'Time'
+        if self.time_predictor in X.columns:
+            X["Hour_of_day"] = (X["Time"] % 86400) // 3600
+            # modulo operation ensures the 24-hour cycle resets, 3600 convert seconds to hours
+            # 86400 = number of seconds in a day ie 24 hrs
+            # 3600 = number of seconds in one hour
+            X["Time_segment"] = pd.cut(X["Hour_of_day"],
+                                       bins = [0, 8, 16, 24],
+                                       labels=["early_morning","morning_afternoon", "evening_night"],
+                                       #  0–7 hours, 8–15 hours, 16–23 hours
+                                       right=False)
+        X.drop(columns = self.concentrated_predictors + ["Time"], inplace = True)
+        # drop these column as the transformed versions curry the signal in a better way
+        return X
+
+
 
 
 
