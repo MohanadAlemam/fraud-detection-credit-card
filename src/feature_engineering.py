@@ -8,7 +8,7 @@ class FeatureEngineer(BaseEstimator, TransformerMixin):
     """
     feature engineering class.
 
-    - Squares potentially strong predictor features.
+    - Conduct signed square root transformation for the strong predictor features.
     - Scales concentrated (low variance) features.
     - Extracts hour and time segment from the Time feature.
     """
@@ -30,7 +30,8 @@ class FeatureEngineer(BaseEstimator, TransformerMixin):
         # squaring strong predictors
         for column in self.strong_predictors:
             if column in X.columns:
-                X[f"{column}_squared"] = X[column] ** 2
+                X[f"{column}_signed_sqrt"] = np.sign(X[column]) * np.sqrt(np.abs(X[column]))
+                # keep the sign and take the square root
 
         # scale the concentrated columns
         for column in self.concentrated_predictors:
@@ -52,10 +53,3 @@ class FeatureEngineer(BaseEstimator, TransformerMixin):
         X.drop(columns = self.concentrated_predictors + ["Time"], inplace = True)
         # drop these column as the transformed versions curry the signal in a better way
         return X
-
-
-
-
-
-
-

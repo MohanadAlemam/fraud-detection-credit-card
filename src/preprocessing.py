@@ -73,9 +73,12 @@ def histograms_vis(data_frame : pd.DataFrame):
     :param data_frame: data frame containing the features
     :return: visualizes histograms of each column/ feature.
     """
-    data_frame = data_frame.drop(columns="Class")
-    # remove class from the visualisation
-    data_frame.hist(figsize = (20, 16), bins = 35, layout=(6, 5))
+    if "Class" in data_frame.columns:
+        data_frame = data_frame.drop(columns="Class")
+        # remove class from the visualisation
+    cols = 5
+    rows = (data_frame.shape[1] +1) // cols
+    data_frame.hist(figsize = (20, 16), bins = 35, layout=(rows, cols))
     # 6 rows, 5 columns
     plt.tight_layout()
     plt.show()

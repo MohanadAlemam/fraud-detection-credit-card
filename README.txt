@@ -3,7 +3,7 @@ FRAUD DETECTION – CREDIT CARD TRANSACTIONS
 
 PROJECT OVERVIEW
 
-Machine Learning (ML) Project designed to detect fraudulent credit card transactions utilizing interpretable models. The dataset used is the Kaggle "Credit Card Fraud Detection" is highly imbalanced with only less than 1% of the data are labelled as fraudulent. This a significant challenge due to majority-class bias, requiring careful handling of imbalance and tuning of hyperparameters. 
+Machine Learning (ML) Project designed to detect fraudulent credit card transactions utilizing interpretable models. The dataset used is Kaggle's "Credit Card Fraud Detection". This dataset is highly imbalanced (only less than 1% of the data are labelled as fraudulent). This poses a significant challenge due to majority-class bias, requiring careful handling of imbalance and tuning of hyperparameters. 
 
 
 Author: Mohanad Alemam
@@ -38,8 +38,8 @@ CURRENT PROGRESS
 [✓] Project setup and repository structure
 [✓] Data loading and exploration
 [✓] Preprocessing scripts completed
-[ ] Feature engineering (in progress)
-[ ] Modeling and evaluation
+[✓] Feature engineering
+[ ] Modeling and evaluation (in progress...)
 [ ] Results analysis 
 
 
