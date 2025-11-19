@@ -1,3 +1,5 @@
+from operator import index
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -33,7 +35,8 @@ def evaluate_model(model, X_test, y_true, model_name="Classifier", print_c_matri
 
     # Metric table from a dic
     metrics_df = pd.DataFrame(dic).transpose()
-    metrics_df.drop(index=["accuracy"], inplace=True)  #drop accuracy from index, we have balanced accuracy instead
+    metrics_df.drop(index=["accuracy", "macro avg", "weighted avg"], inplace=True)
+    # Drop accuracy from index, we have balanced accuracy instead
     metrics_df.drop(columns=["support"], inplace=True) #drop support from index, for simplicity
 
     metrics_df["Balanced Accuracy"] = balanced_accuracy
@@ -50,5 +53,22 @@ def evaluate_model(model, X_test, y_true, model_name="Classifier", print_c_matri
         display.plot(cmap="Blues", xticks_rotation=45)
         plt.title(f"{model_name}\n\nTest Data Confusion Matrix")
         plt.show()
-
     return metrics_df
+
+def compare_models(model_dict: dict):
+    """
+    Extracts the last-row metric values from each model's DataFrame and
+    returns a comparison DataFrame with models as rows and metrics as columns.
+
+    :param model_dict: dict of model names and their respective metrics
+    :return: comparison DataFrame
+    """
+    comp_dict = {}
+    for model_name, metrics in model_dict.items():
+        metrics_class1 = metrics.iloc[1] # take class 1 row (positive class)
+
+        comp_dict[model_name] = metrics_class1
+
+    comp_df = pd.DataFrame.from_dict(comp_dict, orient="index")
+
+    return comp_df
