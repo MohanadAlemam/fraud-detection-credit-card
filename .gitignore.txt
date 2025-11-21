@@ -54,3 +54,10 @@ results/
 # Jupyter checkpoints
 # ======================
 .ipynb_checkpoints/
+
+# ======================
+# Trained Models
+# ======================
+trained_models/
+*.joblib
+*.pkl
