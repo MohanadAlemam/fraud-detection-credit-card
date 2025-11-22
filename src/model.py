@@ -1,5 +1,3 @@
-from operator import index
-
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -8,9 +6,64 @@ from sklearn.metrics import (classification_report,
                              roc_auc_score,
                              balanced_accuracy_score,
                              confusion_matrix,
-                             ConfusionMatrixDisplay)
+                             ConfusionMatrixDisplay, f1_score)
+from sklearn.model_selection import StratifiedKFold, cross_val_predict
+from sklearn.base import clone # to handle CatBoost or other models that sometimes break cloning).
 
-def evaluate_model(model, X_test, y_true, model_name="Classifier", print_c_matrix=True):
+
+# Out-of-fold (OOF) evaluation
+def oof_evaluation(model_dict: dict, X, y):
+    """
+    Perform out-of-fold (OOF) evaluation for multiple classification models.
+
+    :param (dict): Dictionary of model_name: model_object pairs.
+    :param (pd.DataFrame): Feature matrix.
+    :param (pd.Series): Target labels (binary).
+
+    :return: pd.DataFrame: Concatenated metrics table for all models, including: per-class precision, recall, F1-score, PR AUC, and ROC AUC,
+    sorted by PR AUC in descending order.
+    """
+    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=3479)
+
+    compare_models = []
+
+    for model_name, model in model_dict.items():
+        # OOF predicted probabilities
+        oof_probs = cross_val_predict(clone(model, safe=False), # to handle CatBoost which breaks cloning
+                                  X,
+                                  y,
+                                  cv=cv,
+                                  n_jobs=-1,
+                                  method='predict_proba')[:,1]
+
+        # OOF predictions
+        oof_preds = (oof_probs >= 0.5).astype(int) # coverts probabilities to labels
+
+        # Classification report
+        report_dict = classification_report(y, oof_preds, output_dict=True)
+
+        # PR AUR, ROC AUCc and balanced accu
+        pr_auc = average_precision_score(y, oof_probs)
+        roc_auc = roc_auc_score(y, oof_probs)
+
+        # Metric table from a dict
+        metrics_df = pd.DataFrame(report_dict).transpose()
+        metrics_df.drop(index=["accuracy", "macro avg", "weighted avg"], inplace=True)
+        # Drop accuracy from index, we have balanced accuracy instead
+        metrics_df.drop(columns=["support"], inplace=True)  # drop support from index, for simplicity
+
+        metrics_df["val pr auc"] = pr_auc
+        metrics_df["val roc auc"] = roc_auc
+
+        compare_models.append(metrics_df)
+
+    table = pd.concat(compare_models)
+    table = table.sort_values("val pr auc", ascending=False)
+    return table.round(3)
+
+
+# Test Evaluation
+def test_evaluation(model, X_test, y_true, model_name="Classifier", print_c_matrix=True):
     """
     Evaluate a classifier on test data by computing key metrics and displaying a confusion matrix.
 
@@ -26,7 +79,7 @@ def evaluate_model(model, X_test, y_true, model_name="Classifier", print_c_matri
     # Slice the positive-class probability
 
     # Classification report
-    dic = classification_report(y_true, y_pred, output_dict=True)
+    report_dict = classification_report(y_true, y_pred, output_dict=True)
 
     # PR AUR, ROC AUCc and balanced accu
     pr_auc = average_precision_score(y_true, y_proba)
@@ -34,30 +87,36 @@ def evaluate_model(model, X_test, y_true, model_name="Classifier", print_c_matri
     balanced_accuracy = balanced_accuracy_score(y_true, y_pred)
 
     # Metric table from a dic
-    metrics_df = pd.DataFrame(dic).transpose()
+    metrics_df = pd.DataFrame(report_dict).transpose()
     metrics_df.drop(index=["accuracy", "macro avg", "weighted avg"], inplace=True)
     # Drop accuracy from index, we have balanced accuracy instead
     metrics_df.drop(columns=["support"], inplace=True) #drop support from index, for simplicity
 
-    metrics_df["Balanced Accuracy"] = balanced_accuracy
+    metrics_df["balanced accuracy"] = balanced_accuracy
     metrics_df["PR AUC"] = pr_auc
     metrics_df["ROC AUC"] = roc_auc
 
     metrics_df = metrics_df.round(3)
-    classes = np.unique(y_true)
 
+    classes = np.unique(y_true)
     if print_c_matrix:  # Controls Whether to print the C-matrix or not
         confu_matrix = confusion_matrix(y_true, y_pred)
-        display = ConfusionMatrixDisplay(confusion_matrix=confu_matrix, display_labels=classes)
+        confu_matrix_normalized = confu_matrix.astype('float') / confu_matrix.sum(axis=1)[:, np.newaxis]
+        # Normalized row-wise shows proportions instead of raw counts.
+        # numpy divide each row of the confusion matrix by its row sum.
+        # Result each row sums to 1, giving proportions per actual class
+        display = ConfusionMatrixDisplay(confusion_matrix=confu_matrix_normalized, display_labels=classes)
 
-        display.plot(cmap="Blues", xticks_rotation=45)
+        display.plot(cmap="Blues", xticks_rotation=45, values_format= ".3f")
+        # values_format=".3f" shows the decimals in the heatmap.
         plt.title(f"{model_name}\n\nTest Data Confusion Matrix")
         plt.show()
     return metrics_df
 
-def compare_models(model_dict: dict):
+
+def compare_test_metrics(model_dict: dict):
     """
-    Extracts the last-row metric values from each model's DataFrame and
+    Extracts the last-row metric values from each model's metrics DataFrame and
     returns a comparison DataFrame with models as rows and metrics as columns.
 
     :param model_dict: dict of model names and their respective metrics
@@ -70,5 +129,8 @@ def compare_models(model_dict: dict):
         comp_dict[model_name] = metrics_class1
 
     comp_df = pd.DataFrame.from_dict(comp_dict, orient="index")
-
+    comp_df.sort_values("PR AUC", ascending=False, inplace=True)
     return comp_df
+
+
+
