@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from catboost import CatBoostClassifier, CatBoostRegressor
+from scipy.conftest import devices
 from sklearn.metrics import (classification_report,
                              average_precision_score,
                              roc_auc_score,
@@ -26,28 +27,40 @@ def oof_validation(model_dict: dict, X, y, categorical_features =None):
     :return: pd.DataFrame: Concatenated metrics table for all models, including: per-class precision, recall, F1-score, PR AUC, and ROC AUC,
     sorted by PR AUC in descending order.
     """
-    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=3479)
+    cv = StratifiedKFold(n_splits=3, shuffle=True, random_state=3479)
+    # 3 separate train - predict cycles per model
     compare_models = []
 
-    # 1. CatBoostClassifier.
     for model_name, model in model_dict.items():
-        # Checks and handle CatBoost or Pipelines whose final estimator is CatBoost
+
+        # 1. CatBoostClassifier
         if isinstance(model, Pipeline) and isinstance(model.steps[-1][1], CatBoostClassifier):
             oof_probs = np.zeros(len(y))
-            step_name = model.steps[-1][0] # get the classifier name
+            step_name = model.steps[-1][0]
 
             for train_idx, val_idx in cv.split(X, y):
                 X_train_fold, X_val_fold = X.iloc[train_idx], X.iloc[val_idx]
                 y_train_fold = y.iloc[train_idx]
 
-                est = deepcopy(model)
+                # rebuild pipeline copy transformers, create fresh CatBoost
+                transformer_steps = [(n, deepcopy(est)) for n, est in model.steps[:-1]]
+                orig_cb = model.steps[-1][1]
+                fresh_cb = CatBoostClassifier(**orig_cb.get_params())
+                est = Pipeline(transformer_steps + [(step_name, fresh_cb)])
+
+                # set GPU
+                est.set_params(**{f"{step_name}__task_type": "GPU", f"{step_name}__devices": "0"})
+
+                # fit with categorical features
                 est.fit(
                     X_train_fold,
                     y_train_fold,
                     **{f"{step_name}__cat_features": categorical_features,
-                       f"{step_name}__verbose": False},
-                    # ** Python are used for unpacking dictionaries into keyword arguments
+                       f"{step_name}__verbose": False #  # suppress iteration output
+                       }
                 )
+
+                # predict probabilities
                 oof_probs[val_idx] = est.predict_proba(X_val_fold)[:, 1]
 
         # 2. Other classifiers
@@ -73,15 +86,19 @@ def oof_validation(model_dict: dict, X, y, categorical_features =None):
 
         # Metric table from a dict
         metrics_df = pd.DataFrame(report_dict).transpose()
-        metrics_df.drop(index=["accuracy", "macro avg", "weighted avg"], inplace=True)
-        # Drop accuracy from index, we have balanced accuracy instead
+        # Keep only positive class
+        metrics_df = metrics_df.loc[['1']]  # only class 1
+
         metrics_df.drop(columns=["support"], inplace=True)  # drop support from index, for simplicity
         metrics_df["val pr auc"] = pr_auc
         metrics_df["val roc auc"] = roc_auc
+        # Add model name column
+        metrics_df["model"] = model_name
 
         compare_models.append(metrics_df)
 
     table = pd.concat(compare_models)
+    table.set_index("model", inplace=True)
     table = table.sort_values("val pr auc", ascending=False)
     return table.round(3)
 
