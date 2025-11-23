@@ -15,7 +15,7 @@ from sklearn.pipeline import Pipeline
 from copy import deepcopy
 
 
-# Out-of-fold (OOF) validation
+# 1. Out-of-fold (OOF) validation
 def oof_validation(model_dict: dict, X, y, categorical_features =None):
     """
     Perform out-of-fold (OOF) evaluation/ validation for multiple classification models.
@@ -43,25 +43,24 @@ def oof_validation(model_dict: dict, X, y, categorical_features =None):
                 y_train_fold = y.iloc[train_idx]
 
                 # rebuild pipeline copy transformers, create fresh CatBoost
-                transformer_steps = [(n, deepcopy(est)) for n, est in model.steps[:-1]]
-                orig_cb = model.steps[-1][1]
-                fresh_cb = CatBoostClassifier(**orig_cb.get_params())
-                est = Pipeline(transformer_steps + [(step_name, fresh_cb)])
+                transformer_steps = [(n, deepcopy(estimator)) for n, estimator in model.steps[:-1]]
+                orig_catboost = model.steps[-1][1]
+                fresh_catboost = CatBoostClassifier(**orig_catboost.get_params())
+                estimator = Pipeline(transformer_steps + [(step_name, fresh_catboost)])
 
                 # set GPU
-                est.set_params(**{f"{step_name}__task_type": "GPU", f"{step_name}__devices": "0"})
+                estimator.set_params(**{f"{step_name}__task_type": "GPU", f"{step_name}__devices": "0"})
 
                 # fit with categorical features
-                est.fit(
+                estimator.fit(
                     X_train_fold,
                     y_train_fold,
                     **{f"{step_name}__cat_features": categorical_features,
                        f"{step_name}__verbose": False #  # suppress iteration output
                        }
                 )
-
                 # predict probabilities
-                oof_probs[val_idx] = est.predict_proba(X_val_fold)[:, 1]
+                oof_probs[val_idx] = estimator.predict_proba(X_val_fold)[:, 1]
 
         # 2. Other classifiers
         else:
@@ -69,8 +68,7 @@ def oof_validation(model_dict: dict, X, y, categorical_features =None):
             # OOF predicted probabilities
             oof_probs = cross_val_predict(
                 estimator,
-                X,
-                y,
+                X, y,
                 cv=cv,
                 n_jobs=-1,
                 method='predict_proba')[:,1] # slice positive class probabilities
@@ -89,7 +87,6 @@ def oof_validation(model_dict: dict, X, y, categorical_features =None):
         # Keep only positive class
         metrics_df = metrics_df.loc[['1']]  # only class 1
 
-        metrics_df.drop(columns=["support"], inplace=True)  # drop support from index, for simplicity
         metrics_df["val pr auc"] = pr_auc
         metrics_df["val roc auc"] = roc_auc
         # Add model name column
@@ -103,7 +100,9 @@ def oof_validation(model_dict: dict, X, y, categorical_features =None):
     return table.round(3)
 
 
-# Test Evaluation
+
+
+# 2. Test Evaluation
 def test_evaluation(model, X_test, y_true, model_name="Classifier", print_c_matrix=True):
     """
     Evaluate a classifier on test data by computing key metrics and displaying a confusion matrix.
@@ -131,7 +130,7 @@ def test_evaluation(model, X_test, y_true, model_name="Classifier", print_c_matr
     metrics_df = pd.DataFrame(report_dict).transpose()
     metrics_df.drop(index=["accuracy", "macro avg", "weighted avg"], inplace=True)
     # Drop accuracy from index, we have balanced accuracy instead
-    metrics_df.drop(columns=["support"], inplace=True) #drop support from index, for simplicity
+    #metrics_df.drop(columns=["support"], inplace=True) #drop support from index, for simplicity
 
     metrics_df["balanced accuracy"] = balanced_accuracy
     metrics_df["PR AUC"] = pr_auc
@@ -155,6 +154,8 @@ def test_evaluation(model, X_test, y_true, model_name="Classifier", print_c_matr
     return metrics_df
 
 
+
+# 3. Test metrics Comparison
 def compare_test_metrics(model_dict: dict):
     """
     Extracts the last-row metric values from each model's metrics DataFrame and
