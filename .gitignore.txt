@@ -56,8 +56,7 @@ results/
 .ipynb_checkpoints/
 
 # ======================
-# Trained Models
+# Ignore model files
 # ======================
-trained_models/
 *.joblib
 *.pkl
