@@ -77,9 +77,9 @@ def histograms_vis(data_frame : pd.DataFrame):
         data_frame = data_frame.drop(columns="Class")
         # remove class from the visualisation
     cols = 5
-    rows = (data_frame.shape[1] +1) // cols
+    rows = (data_frame.shape[1] +2) // cols
     data_frame.hist(figsize = (20, 16), bins = 35, layout=(rows, cols))
-    # 6 rows, 5 columns
+    # 9 rows, 5 columns
     plt.tight_layout()
     plt.show()
 
