@@ -1,4 +1,3 @@
-import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.base import BaseEstimator, TransformerMixin
@@ -15,6 +14,8 @@ class FeatureEngineer(BaseEstimator, TransformerMixin):
     def __init__(self):
         # define features groups
         self.strong_predictors = ["V4", "V9", "V10", "V11", "V12", "V14", "V16", "V17"]
+        self.strongest_4predictors = ["V4", "V11", "V12","V14"]
+        # These four features exhibit the strongest interquartile range separation between fraud and non-fraud transactions.
         self.concentrated_predictors = ["V2", "V5", "V7", "V8", "V20","V21", "V23", "V27", "V28", "Amount"]
         self.time_predictor = "Time"
         self.scaler = MinMaxScaler()
@@ -27,11 +28,14 @@ class FeatureEngineer(BaseEstimator, TransformerMixin):
     def transform(self, X, y=None):
         X = X.copy()
 
-        # squaring strong predictors
+        # strong predictors
         for column in self.strong_predictors:
             if column in X.columns:
-                X[f"{column}_signed_sqrt"] = np.sign(X[column]) * np.sqrt(np.abs(X[column]))
-                # keep the sign and take the square root
+                X[f"{column}_abs"] = X[column].abs()
+
+        for column in self.strongest_4predictors:
+            if column in X.columns:
+                X[f"{column}_sq"] = X[column] ** 2
 
         # scale the concentrated columns
         for column in self.concentrated_predictors:
