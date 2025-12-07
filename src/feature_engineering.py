@@ -5,11 +5,11 @@ from sklearn.base import BaseEstimator, TransformerMixin
 class FeatureEngineer(BaseEstimator, TransformerMixin):
     # To inherit method from them eg (.fit) and (.transform)
     """
-    feature engineering class.
-
-    - Conduct signed square root transformation for the strong predictor features.
-    - Scales concentrated (low variance) features.
-    - Extracts hour and time segment from the Time feature.
+    Feature engineering class.
+    - Absolute value transformation for strong predictors.
+    - Squared transformation for the four strongest predictors (V4, V11, V12, V14).
+    - Scaling of concentrated (low variance) features.
+    - Extract hour and time segment from Time.
     """
     def __init__(self):
         # define features groups
@@ -32,16 +32,18 @@ class FeatureEngineer(BaseEstimator, TransformerMixin):
         for column in self.strong_predictors:
             if column in X.columns:
                 X[f"{column}_abs"] = X[column].abs()
-
+       # Sq for the 4 strongest predictors
         for column in self.strongest_4predictors:
             if column in X.columns:
                 X[f"{column}_sq"] = X[column] ** 2
 
-        # scale the concentrated columns
-        for column in self.concentrated_predictors:
-            if column in X.columns:
-                X[f"{column}_scaled"] = self.scaler.fit_transform(X[[column]])
-                # MinMaxScaler.transform() expects a 2D array not a Series hence [[]]
+        # scale the concentrated columns using the MinMaxScaler fitted on training data
+        X_scaled = pd.DataFrame(
+            self.scaler.transform(X[self.concentrated_predictors]), # apply the same scaling learned in fit()
+            columns=[f"{col}_scaled" for col in self.concentrated_predictors],
+            index=X.index # keep the original row order
+        )
+        X = pd.concat([X, X_scaled], axis=1)  # add the scaled columns to the dataset
 
         # extract hour and time from feature 'Time'
         if self.time_predictor in X.columns:
