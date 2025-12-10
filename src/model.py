@@ -8,12 +8,13 @@ from sklearn.metrics import (classification_report,
                              roc_auc_score,
                              balanced_accuracy_score,
                              confusion_matrix,
-                             ConfusionMatrixDisplay)
+                             ConfusionMatrixDisplay,
+                             precision_recall_curve
+                             )
 from sklearn.model_selection import StratifiedKFold, cross_val_predict
 from sklearn.base import clone # to handle CatBoost or other models that sometimes break cloning).
 from sklearn.pipeline import Pipeline
 from copy import deepcopy
-
 
 # 1. Out-of-fold (OOF) validation
 def oof_validation(model_dict: dict, X, y, categorical_features =None):
@@ -128,7 +129,7 @@ def test_evaluation(model, X_test, y_true, model_name="Classifier", print_c_matr
 
     # Metric table from a dic
     metrics_df = pd.DataFrame(report_dict).transpose()
-    metrics_df.drop(index=["accuracy", "macro avg", "weighted avg"], inplace=True)
+    metrics_df.drop(index=["accuracy", "macro avg", "weighted avg"], inplace=True) # maybe keep macro avg for results
     # Drop accuracy from index, we have balanced accuracy instead
     #metrics_df.drop(columns=["support"], inplace=True) #drop support from index, for simplicity
 
@@ -175,4 +176,56 @@ def compare_test_metrics(model_dict: dict):
     return comp_df
 
 
+# 4. Results analysis methods and functions
 
+# Precision-Recall curve (PR AUC)
+def pr_curve_oof(model, X, y):
+    """
+    Compute precision, recall and PR AUC scores for a classifier. and plots the PR-AUC curve.
+
+    :param model: the trained model
+    :param X: the test/ validation data
+    :param y: the true labels
+    :return: precision, recall plot and PR AUC score
+    """
+    # predict  off probabilities using the model
+    cv = StratifiedKFold(n_splits=3, shuffle=True, random_state=3479)
+    oof_y_probabilities = cross_val_predict(model,
+                                            X, y,
+                                            cv=cv,
+                                            n_jobs=-1,
+                                            method='predict_proba')[:,1]  # positive class probabilities
+
+    precisions, recalls, _ = precision_recall_curve(y, oof_y_probabilities)
+    pr_auc = average_precision_score(y, oof_y_probabilities)
+
+    plt.figure(figsize = (8, 6))
+    plt.plot(recalls, precisions)
+    plt.xlabel("Recall")
+    plt.ylabel("Precision")
+    plt.title(f"Precision-Recall curve (PR AUC = {pr_auc:.3f})")
+    plt.show()
+
+    return pr_auc, oof_y_probabilities
+
+# # Precision & Recall vs Threshold (use the probabilities computed once)
+def pr_vs_threshold_curve_oof(y, oof_y_probabilities):
+    """
+    Plots precision and recall curve of model on test data.
+
+    """
+    precision, recall, thresholds  = precision_recall_curve(y, oof_y_probabilities)
+
+# plot precision and recall as the threshold changes
+    plt.figure(figsize = (10,5))
+    plt.plot(thresholds, precision[:-1], label="Precision") # precision_recall_curve returns values with extra elements, we need to slice
+    plt.plot(thresholds, recall[:-1], label="Recall")
+
+    #plt.vlines(thresholds[::50], ymin=0, ymax=1, linestyles='dotted', label="Threshold", alpha=0.5)
+#thresholds[::2] plot evey 10th  threshold for clarity
+    plt.legend()
+    plt.xlabel("Threshold")
+    plt.ylabel("Score")
+    plt.title("Figure: Precision-Recall vs. Confidence Threshold")
+
+    plt.show()
