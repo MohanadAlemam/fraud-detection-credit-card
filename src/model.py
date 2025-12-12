@@ -16,6 +16,9 @@ from sklearn.base import clone # to handle CatBoost or other models that sometim
 from sklearn.pipeline import Pipeline
 from copy import deepcopy
 
+from tensorflow.python.trackable.trackable_utils import escape_local_name
+
+
 # 1. Out-of-fold (OOF) validation
 def oof_validation(model_dict: dict, X, y, categorical_features =None):
     """
@@ -229,3 +232,34 @@ def pr_vs_threshold_curve_oof(y, oof_y_probabilities):
     plt.title("Figure: Precision-Recall vs. Confidence Threshold")
 
     plt.show()
+
+
+
+# Tired Thresholds validation / justification
+
+def validate_thresholds(oof_y_probabilities,
+                      high_risk_cut_off=0.80,
+                      medium_risk_cut_off=0.30):
+    """
+    Check of how many instances fall into High / Medium / Low tiers
+    based on OOF probabilities.
+    """
+
+    total = len(oof_y_probabilities)
+
+    high = (oof_y_probabilities >= high_risk_cut_off).sum()
+    medium = ((oof_y_probabilities < high_risk_cut_off) &
+              (oof_y_probabilities >= medium_risk_cut_off)).sum()
+    low = (oof_y_probabilities < medium_risk_cut_off).sum()
+
+    pct_high = high / total * 100
+    pct_medium = medium / total * 100
+    pct_low = low / total * 100
+
+    pct_df = pd.DataFrame({
+        "Percent": [pct_high, pct_medium, pct_low]},
+        index = ["High", "Medium", "Low"]
+    )
+    return pct_df.round(2)
+
+
