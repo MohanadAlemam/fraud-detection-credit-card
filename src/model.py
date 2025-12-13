@@ -5,7 +5,6 @@ from catboost import CatBoostClassifier, CatBoostRegressor
 from scipy.conftest import devices
 from sklearn.metrics import (classification_report,
                              average_precision_score,
-                             roc_auc_score,
                              balanced_accuracy_score,
                              confusion_matrix,
                              ConfusionMatrixDisplay,
@@ -84,26 +83,22 @@ def oof_validation(model_dict: dict, X, y, categorical_features =None):
 
         # PR AUR, ROC AUCc and balanced accu
         pr_auc = average_precision_score(y, oof_probs)
-        roc_auc = roc_auc_score(y, oof_probs)
 
         # Metric table from a dict
         metrics_df = pd.DataFrame(report_dict).transpose()
         # Keep only positive class
         metrics_df = metrics_df.loc[['1']]  # only class 1
 
-        metrics_df["val pr auc"] = pr_auc
-        metrics_df["val roc auc"] = roc_auc
+        metrics_df["oof pr auc (fraud)"] = pr_auc
         # Add model name column
         metrics_df["model"] = model_name
 
         compare_models.append(metrics_df)
 
-    table = pd.concat(compare_models)
+    table = pd.concat(compare_models, ignore_index=True)
     table.set_index("model", inplace=True)
-    table = table.sort_values("val pr auc", ascending=False)
+    table = table.sort_values("oof pr auc (fraud)", ascending=False)
     return table.round(3)
-
-
 
 
 # 2. Test Evaluation
@@ -127,18 +122,18 @@ def test_evaluation(model, X_test, y_true, model_name="Classifier", print_c_matr
 
     # PR AUR, ROC AUCc and balanced accu
     pr_auc = average_precision_score(y_true, y_proba)
-    roc_auc = roc_auc_score(y_true, y_proba)
     balanced_accuracy = balanced_accuracy_score(y_true, y_pred)
 
     # Metric table from a dic
     metrics_df = pd.DataFrame(report_dict).transpose()
-    metrics_df.drop(index=["accuracy", "macro avg", "weighted avg"], inplace=True) # maybe keep macro avg for results
+    metrics_df.drop(index=["accuracy", "weighted avg"], inplace=True) # maybe keep macro avg for results
     # Drop accuracy from index, we have balanced accuracy instead
+    # Drop, "weighted avg" Weighted average (in imbalanced fraud setting) the positive negative class will skew the results
     #metrics_df.drop(columns=["support"], inplace=True) #drop support from index, for simplicity
 
     metrics_df["balanced accuracy"] = balanced_accuracy
-    metrics_df["PR AUC"] = pr_auc
-    metrics_df["ROC AUC"] = roc_auc
+    metrics_df["pr auc"] = pr_auc
+    metrics_df = metrics_df.rename(index={"0": "Non-fraud (Class 0)", "1": "Fraud (Class 1)"}) # Rename the classes
 
     metrics_df = metrics_df.round(3)
 
@@ -158,24 +153,27 @@ def test_evaluation(model, X_test, y_true, model_name="Classifier", print_c_matr
     return metrics_df
 
 
-
 # 3. Test metrics Comparison
-def compare_test_metrics(model_dict: dict):
+def compare_test_metrics(model_dict: dict, X_test, y_test):
     """
-    Extracts the last-row metric values from each model's metrics DataFrame and
-    returns a comparison DataFrame with models as rows and metrics as columns.
+    Calculates test metrics and extracts positive class metric values from each model's metrics DataFrame and
+    returns a rank-ordered table based on PR AUC for positive class.
 
-    :param model_dict: dict of model names and their respective metrics
+    :param model_dict: dict of model names and model object
     :return: comparison DataFrame
     """
     comp_dict = {}
-    for model_name, metrics in model_dict.items():
-        metrics_class1 = metrics.iloc[1] # take class 1 row (positive class)
+    for model_name, model in model_dict.items():
+        metrics_df = test_evaluation(model, X_test= X_test,
+                                     y_true= y_test,
+                                     model_name = model_name,
+                                     print_c_matrix=False)
 
+        metrics_class1 = metrics_df.loc["Fraud (Class 1)"] # take class 1 row (positive class)
         comp_dict[model_name] = metrics_class1
 
     comp_df = pd.DataFrame.from_dict(comp_dict, orient="index")
-    comp_df.sort_values("PR AUC", ascending=False, inplace=True)
+    comp_df.sort_values("pr auc", ascending=False, inplace=True)
     return comp_df
 
 
@@ -211,7 +209,8 @@ def pr_curve_oof(model, X, y):
 
     return pr_auc, oof_y_probabilities
 
-# # Precision & Recall vs Threshold (use the probabilities computed once)
+
+# Precision & Recall vs Threshold (use the probabilities computed once)
 def pr_vs_threshold_curve_oof(y, oof_y_probabilities):
     """
     Plots precision and recall curve of model on test data.
@@ -234,8 +233,7 @@ def pr_vs_threshold_curve_oof(y, oof_y_probabilities):
     plt.show()
 
 
-
-# Tired Thresholds validation / justification
+# Tiered Thresholds validation / justification
 
 def validate_thresholds(oof_y_probabilities,
                       high_risk_cut_off=0.80,
@@ -261,5 +259,4 @@ def validate_thresholds(oof_y_probabilities,
         index = ["High", "Medium", "Low"]
     )
     return pct_df.round(2)
-
 
