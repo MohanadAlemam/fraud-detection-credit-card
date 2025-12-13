@@ -150,6 +150,8 @@ def test_evaluation(model, X_test, y_true, model_name="Classifier", print_c_matr
         # values_format=".3f" shows the decimals in the heatmap.
         plt.title(f"{model_name}\n\nTest Data Confusion Matrix")
         plt.show()
+        return None
+
     return metrics_df
 
 
@@ -259,4 +261,38 @@ def validate_thresholds(oof_y_probabilities,
         index = ["High", "Medium", "Low"]
     )
     return pct_df.round(2)
+
+
+# Feature Importance
+def feature_importance(model, X_train, y_train):
+    """
+    Refit the full preprocessing + model pipeline on training data and return
+    the top 10 feature importances with correct transformed feature names.
+    """
+    model_refit = model.fit(X_train, y_train)
+    # Refit the model so the full preprocessing pipeline is applied end-to-end,
+    # allowing feature names created during transformation (e.g. one-hot encoding) to be correctly captured for feature importance.
+
+    # Get classifier
+    clf = model_refit.named_steps["classifier"]
+
+    # Get feature names from preprocessing step
+    feature_names = model_refit.named_steps["preprocessor"].get_feature_names_out()
+
+    # Importance
+    importance_df = pd.DataFrame({
+        "feature": feature_names,
+        "importance": clf.feature_importances_
+    }).sort_values("importance", ascending=False)
+    top_ten = importance_df.head(10)
+
+    # plot
+    top_ten.iloc[::-1].plot(x="feature", y="importance",
+                            legend=False, kind = "barh",
+                            figsize = (8, 5), fontsize=7, color="darkorange")
+    # iloc[::-1] reverse the order before plotting so the largest value at the top
+    plt.title("Most Important Predictors/Features by Gain (Top 10)")
+    plt.show()
+
+    return top_ten
 
