@@ -287,12 +287,72 @@ def feature_importance(model, X_train, y_train):
     top_ten = importance_df.head(10)
 
     # plot
-    top_ten.iloc[::-1].plot(x="feature", y="importance",
-                            legend=False, kind = "barh",
-                            figsize = (8, 5), fontsize=7, color="darkorange")
+    top_ten.iloc[::-1].plot(kind = "barh", x = "feature", y = "importance",
+                            figsize = (8, 6), fontsize=8, color="darkorange")
     # iloc[::-1] reverse the order before plotting so the largest value at the top
+    plt.xlabel("Feature Importance")
+    plt.ylabel("Feature")
     plt.title("Most Important Predictors/Features by Gain (Top 10)")
     plt.show()
 
     return top_ten
 
+
+## Client API
+def fraud_risk_assessment(model, new_instances,
+                          high_risk_cut_off=0.80,
+                          medium_risk_cut_off=0.30):
+    """
+    Assess fraud risk for new transactions based on model probabilities.
+
+    Parameters:
+    - model: trained classifier with predict_proba method
+    - new_instances: DataFrame of new transaction features
+    - high_risk_cut_off: probability threshold for high risk
+    - medium_risk_cut_off: probability threshold for medium risk
+
+    Returns:
+    - DataFrame with probabilities, risk levels, and indicators (High/Medium/Low)
+    """
+    # Input validation
+    if not hasattr(model, "predict_proba"):
+        raise ValueError("Model must have a 'predict_proba' method.")
+
+    if not isinstance(new_instances, pd.DataFrame):
+        raise TypeError("new_instances must be a pandas DataFrame.")
+
+    if not isinstance(high_risk_cut_off, (float, int)) or not (0 <= high_risk_cut_off <= 1):
+        raise ValueError("high_risk_cut_off must be a float between 0 and 1.")
+
+    if not isinstance(medium_risk_cut_off, (float, int)) or not (0 <= medium_risk_cut_off <= 1):
+        raise ValueError("medium_risk_cut_off must be a float between 0 and 1.")
+
+    # Ensure high risk > medium risk
+    if high_risk_cut_off <= medium_risk_cut_off:
+        raise ValueError("high_risk_cut_off must be greater than medium_risk_cut_off.")
+
+    classes_probabilities = model.predict_proba(new_instances) # Calculate proba based on the model
+    fraud_probabilities = classes_probabilities[:, 1] # Consider only the probabilities of the positive class as confidence(yes)
+
+    df = pd.DataFrame()
+    df["Fraud Probability"] = fraud_probabilities
+
+    df.loc[df["Fraud Probability"] >= high_risk_cut_off,
+    ["Risk Level", "Risk Indicator", "Action code", "Action Text"]] = ["High", "Red","BLOCK",
+                                                                       "Block transaction; initiate fraud protocol."]
+
+    df.loc[(df["Fraud Probability"] < high_risk_cut_off) &
+           (df["Fraud Probability"] >= medium_risk_cut_off),
+    ["Risk Level", "Risk Indicator", "Action code", "Action Text"]] = ["Medium", "Amber", "REVIEW",
+                                                                       "Flag for manual review before approval"]
+
+    df.loc[df["Fraud Probability"] < medium_risk_cut_off,
+    ["Risk Level", "Risk Indicator", "Action code", "Action Text"]] = ["Low", "Green", "ALLOW",
+                                                                       "No action; process normally"]
+    df.index.name = "Transaction ID"
+    # Rename index to be Transaction ID
+    df.sort_values("Fraud Probability", ascending=False, inplace=True)
+    # sort by probability of fraud to list the fraud cases at the top of the table
+    fraud_risk_assessment_table =df.round(2)
+
+    return fraud_risk_assessment_table
