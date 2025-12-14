@@ -1,8 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from catboost import CatBoostClassifier, CatBoostRegressor
-from scipy.conftest import devices
+from catboost import CatBoostClassifier
 from sklearn.metrics import (classification_report,
                              average_precision_score,
                              balanced_accuracy_score,
@@ -288,7 +287,7 @@ def feature_importance(model, X_train, y_train):
 
     # plot
     top_ten.iloc[::-1].plot(kind = "barh", x = "feature", y = "importance",
-                            figsize = (8, 6), fontsize=8, color="darkorange")
+                            figsize = (7, 5), fontsize=8, color="darkorange")
     # iloc[::-1] reverse the order before plotting so the largest value at the top
     plt.xlabel("Feature Importance")
     plt.ylabel("Feature")
@@ -356,3 +355,34 @@ def fraud_risk_assessment(model, new_instances,
     fraud_risk_assessment_table =df.round(2)
 
     return fraud_risk_assessment_table
+
+
+def smoke_test_sample(fraud_risk_assessment_table):
+    """
+    Creates a small, representative sample for API smoke testing by selecting
+    a subset of High-, Medium-, and Low-risk transactions.
+
+    The function extracts up to 5 records from each risk tier and returns a
+    combined, sorted DataFrame to validate API output structure and logic.
+    :param fraud_risk_assessment_table:  DataFrame output from fraud_risk_assessment()
+    :return: DataFrame containing a representative risk-tier sample
+    """
+    # 5 High-risk samples
+    high_risk_sample = fraud_risk_assessment_table[
+        fraud_risk_assessment_table["Risk Level"] == "High"
+        ].head(5)
+
+    # 5 Medium-risk samples
+    medium_risk_sample = fraud_risk_assessment_table[
+        fraud_risk_assessment_table["Risk Level"] == "Medium"
+        ].head(5)
+
+    # 5 Low-risk samples
+    low_risk_sample = fraud_risk_assessment_table[
+        fraud_risk_assessment_table["Risk Level"] == "Low"
+        ].head(5)
+    smoke_test_sample = pd.concat(
+        [high_risk_sample, medium_risk_sample, low_risk_sample]
+    )
+    smoke_test_sample.sort_values("Fraud Probability", ascending=False, inplace=True)
+    return smoke_test_sample
