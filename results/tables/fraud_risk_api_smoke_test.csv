@@ -1,3 +1,10 @@
+"
+Transaction ID","Fraud Probability
+","Risk Level
+","Risk Indicator
+","Action code
+","Action Text
+"
 2646,1.00,High,Red,BLOCK,Block transaction; initiate fraud protocol.
 27831,1.00,High,Red,BLOCK,Block transaction; initiate fraud protocol.
 1467,1.00,High,Red,BLOCK,Block transaction; initiate fraud protocol.

@@ -1,3 +1,4 @@
+"",precision,recall,f1-score,support,balanced accuracy,pr auc
 Non-fraud (Class 0),1.000,1.000,1.000,56864.0,0.888,0.857
 Fraud (Class 1),0.950,0.776,0.854,98.0,0.888,0.857
 macro avg,0.975,0.888,0.927,56962.0,0.888,0.857

@@ -1,3 +1,4 @@
+"",precision,recall,f1-score,support,balanced accuracy,pr auc
 LightGBM (Tuned),0.950,0.776,0.854,98.0,0.888,0.857
 CatBoost (Tuned),0.986,0.735,0.842,98.0,0.867,0.843
 LightGBM (Default),0.818,0.827,0.822,98.0,0.913,0.836
