@@ -179,7 +179,7 @@ def compare_test_metrics(model_dict: dict, X_test, y_test):
 # 4. Results analysis methods and functions
 
 # Precision-Recall curve (PR AUC)
-def pr_curve_oof(model, X, y):
+def pr_curve_oof(model, X, y, data_type = "OOF"):
     """
     Compute precision, recall and PR AUC scores for a classifier. and plots the PR-AUC curve.
 
@@ -203,7 +203,7 @@ def pr_curve_oof(model, X, y):
     plt.plot(recalls, precisions)
     plt.xlabel("Recall")
     plt.ylabel("Precision")
-    plt.title(f"Precision-Recall curve (PR AUC = {pr_auc:.3f})")
+    plt.title(f"{data_type} Precision-Recall curve (PR AUC = {pr_auc:.3f})")
     plt.show()
 
     return pr_auc, oof_y_probabilities
