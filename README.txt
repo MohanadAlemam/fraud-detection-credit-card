@@ -29,8 +29,6 @@ Modeling and Evaluation: Logistic Regression is deployed as a Baseline accompani
 
 Calibration and Thresholding: The production model was selected based on OOF evaluation results. Model's probabilities calibration was conducted including computing Brier score resulting in ~ 0.00037 indicating realistic and reliable probabilities. Then three Fraud Risk thresholds (High ≥0.80 Medium 0.30–0.80 and Low <0.30) were calibrated to work as risk levels. The API allows business/users to adjust these thresholds based on domain knowledge and risk appetite.
 
-
-
 Final Production Model Performance Metrics (on test/holdout data): The table hereunder lists the performance metrics for the final production model i.e. LightGBM (tuned). The model's confusion matrix confirms its strong positive class performance. These metrics are satisfactory, and an indicator of the project's success in handling the severe class imbalance i.e. fraud prevalence ~ 0.173%.
 
 Class                  Precision  Recall  F1-score  Support  BalAcc  PR AUC
