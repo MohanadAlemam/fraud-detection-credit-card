@@ -27,7 +27,9 @@ The EDA is followed by targeted Feature Engineering including Non-monotonic tran
 
 Modeling and Evaluation: Logistic Regression is deployed as a Baseline accompanied with advanced models including Random Forest, CatBoost and LightGBM, these selections were selected  based on EDA's results and the nature of the models. After that Hyperparameter tuning and Out of Fold (OOF) evaluation focused on positive/fraud class metrics.
 
-Calibration and Thresholding: The production model was selected based on OOF evaluation results. Model's probabilities calibration was conducted including computing Brier score resulting in ~ 0.00037 indicating realistic and reliable probabilities. Then three Fraud Risk thresholds (High ≥0.80 Medium 0.30–0.80 and Low <0.30) were calibrated to work as risk levels.
+Calibration and Thresholding: The production model was selected based on OOF evaluation results. Model's probabilities calibration was conducted including computing Brier score resulting in ~ 0.00037 indicating realistic and reliable probabilities. Then three Fraud Risk thresholds (High ≥0.80 Medium 0.30–0.80 and Low <0.30) were calibrated to work as risk levels. The API allows business/users to adjust these thresholds based on domain knowledge and risk appetite.
+
+
 
 Final Production Model Performance Metrics (on test/holdout data): The table hereunder lists the performance metrics for the final production model i.e. LightGBM (tuned). The model's confusion matrix confirms its strong positive class performance. These metrics are satisfactory, and an indicator of the project's success in handling the severe class imbalance i.e. fraud prevalence ~ 0.173%.
 
@@ -44,7 +46,7 @@ Client facing API:A business friendly API was built to return fraud probability,
 
 PROJECT STRUCTURE
 
-fraud-detection-credit-card/
+fraud-risk-modeling/
 │
 ├── data/       # Raw and  processed datasets
 ├── notebooks/  # EDA, feature engineering modeling and analysis 
