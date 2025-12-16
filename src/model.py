@@ -14,8 +14,6 @@ from sklearn.base import clone # to handle CatBoost or other models that sometim
 from sklearn.pipeline import Pipeline
 from copy import deepcopy
 
-from tensorflow.python.trackable.trackable_utils import escape_local_name
-
 
 # 1. Out-of-fold (OOF) validation
 def oof_validation(model_dict: dict, X, y, categorical_features =None):
@@ -331,8 +329,8 @@ def fraud_risk_assessment(model, new_instances,
         raise ValueError("high_risk_cut_off must be greater than medium_risk_cut_off.")
 
     classes_probabilities = model.predict_proba(new_instances) # Calculate proba based on the model
-    fraud_probabilities = classes_probabilities[:, 1] # Consider only the probabilities of the positive class as confidence(yes)
-
+    fraud_probabilities = classes_probabilities[:, 1]
+    # Consider only the probabilities of the positive class as confidence(yes)
     df = pd.DataFrame()
     df["Fraud Probability"] = fraud_probabilities
 
@@ -343,11 +341,11 @@ def fraud_risk_assessment(model, new_instances,
     df.loc[(df["Fraud Probability"] < high_risk_cut_off) &
            (df["Fraud Probability"] >= medium_risk_cut_off),
     ["Risk Level", "Risk Indicator", "Action code", "Action Text"]] = ["Medium", "Amber", "REVIEW",
-                                                                       "Flag for manual review before approval"]
+                                                                       "Flag for manual review."]
 
     df.loc[df["Fraud Probability"] < medium_risk_cut_off,
     ["Risk Level", "Risk Indicator", "Action code", "Action Text"]] = ["Low", "Green", "ALLOW",
-                                                                       "No action; process normally"]
+                                                                       "No action; process normally."]
     df.index.name = "Transaction ID"
     # Rename index to be Transaction ID
     df.sort_values("Fraud Probability", ascending=False, inplace=True)

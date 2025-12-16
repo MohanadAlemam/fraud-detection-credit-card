@@ -1,5 +1,4 @@
 # Initial required libraries
-import numpy as np
 import pandas as pd
 
 # 01. Data Loader Function

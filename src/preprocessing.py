@@ -1,8 +1,6 @@
 # Initial required libraries
 import matplotlib.pyplot as plt
 import pandas as pd
-from keras.src.utils.summary_utils import bold_text
-
 
 #01. Class Balance Function
 def class_balance(labeled_data : pd.DataFrame):
@@ -78,7 +76,7 @@ def histograms_vis(data_frame : pd.DataFrame):
         # remove class from the visualisation
     cols = 5
     rows = (data_frame.shape[1] +2) // cols
-    data_frame.hist(figsize = (20, 16), bins = 35, layout=(rows, cols))
+    data_frame.hist(figsize = (20, 16), bins = 35, layout=(rows, cols), grid= False)
     # 9 rows, 5 columns
     plt.tight_layout()
     plt.show()
@@ -99,7 +97,7 @@ def box_plots(data_frame : pd.DataFrame):
     axes = axes.flatten()
 
     for i, col in enumerate(features):
-        data_frame.boxplot(column=col, by="Class", ax=axes[i])
+        data_frame.boxplot(column=col, by="Class", ax=axes[i], grid= False)
         axes[i].set_title(f"{col}", fontsize=9)
         axes[i].set_xlabel("Class")
         axes[i].set_ylabel("Value")
