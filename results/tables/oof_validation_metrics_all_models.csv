@@ -1,0 +1,8 @@
+model,precision,recall,f1-score,support,oof pr auc (fraud)
+LightGBM (Tuned),0.94,0.832,0.883,394.0,0.863
+CatBoost (Tuned),0.96,0.802,0.874,394.0,0.856
+LightGBM (Default),0.827,0.838,0.832,394.0,0.848
+Random Forest (Tuned),0.881,0.805,0.841,394.0,0.839
+CatBoost (Default),0.798,0.853,0.825,394.0,0.832
+Random Forest (Default),0.835,0.81,0.822,394.0,0.803
+Logistic Regression (Baseline),0.053,0.893,0.1,394.0,0.756

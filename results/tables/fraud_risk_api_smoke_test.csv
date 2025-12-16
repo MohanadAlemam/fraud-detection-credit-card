@@ -1,0 +1,13 @@
+2646,1.00,High,Red,BLOCK,Block transaction; initiate fraud protocol.
+27831,1.00,High,Red,BLOCK,Block transaction; initiate fraud protocol.
+1467,1.00,High,Red,BLOCK,Block transaction; initiate fraud protocol.
+25261,1.00,High,Red,BLOCK,Block transaction; initiate fraud protocol.
+51590,1.00,High,Red,BLOCK,Block transaction; initiate fraud protocol.
+51633,0.75,Medium,Amber,REVIEW,Flag for manual review.
+46469,0.42,Medium,Amber,REVIEW,Flag for manual review.
+4265,0.33,Medium,Amber,REVIEW,Flag for manual review.
+32091,0.29,Low,Green,ALLOW,No action; process normally.
+44610,0.26,Low,Green,ALLOW,No action; process normally.
+9367,0.20,Low,Green,ALLOW,No action; process normally.
+43214,0.10,Low,Green,ALLOW,No action; process normally.
+20416,0.07,Low,Green,ALLOW,No action; process normally.
