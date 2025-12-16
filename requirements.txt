@@ -1,3 +1,12 @@
-numpy~=2.3.3
-pandas~=2.3.3
-matplotlib~=3.10.7
+# Core Python libraries
+numpy
+pandas
+matplotlib
+
+# Scikit-learn
+scikit-learn
+joblib
+
+# ML models
+catboost
+lightgbm
